@@ -1,8 +1,7 @@
 import { NextAuthOptions } from "next-auth"
 
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET is not defined")
-}
+// Use a default secret for development
+const secret = process.env.NEXTAUTH_SECRET || "development-secret-key-123"
 
 export const authOptions: NextAuthOptions = {
   providers: [],
@@ -20,5 +19,5 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  secret: process.env.NEXTAUTH_SECRET as string,
+  secret,
 } 
