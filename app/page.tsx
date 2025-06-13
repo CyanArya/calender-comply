@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CalendarSidebar } from "@/components/calendar-sidebar"
 import { CalendarHeader } from "@/components/calendar-header"
 import { CalendarView } from "@/components/calendar-view"
@@ -144,10 +144,8 @@ export default function CalendarApp() {
   ])
 
   const handleAddEvent = (event: Omit<Event, "id">) => {
-    console.log("Adding event:", event);
     setEvents((prev) => {
       const newEvents = [...prev, { ...event, id: String(prev.length + 1) }];
-      console.log("Events after adding:", newEvents);
       return newEvents;
     })
     setShowEventModal(false)

@@ -28,6 +28,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
     date: "",
     startTime: "",
     endTime: "",
+    color: "bg-blue-100 border-blue-400",
     type: "meeting",
     attendees: [],
     reminders: [],
@@ -52,6 +53,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
         date: editingEvent.date,
         startTime: editingEvent.startTime,
         endTime: editingEvent.endTime,
+        color: editingEvent.color,
         type: editingEvent.type,
         attendees: editingEvent.attendees || [],
         reminders: editingEvent.reminders || [],
@@ -72,6 +74,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
         date: dateString,
         startTime,
         endTime,
+        color: "bg-blue-100 border-blue-400",
         type: "meeting",
         attendees: [],
         reminders: [],
@@ -99,6 +102,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
       date: "",
       startTime: "",
       endTime: "",
+      color: "bg-blue-100 border-blue-400",
       type: "meeting",
       attendees: [],
       reminders: [],
@@ -113,13 +117,17 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
     onClose()
   }
 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/;
+
   const addAttendee = () => {
-    if (newAttendee.name.trim() && newAttendee.email.trim()) {
+    if (newAttendee.name.trim() && newAttendee.email.trim() && emailRegex.test(newAttendee.email)) {
       setFormData((prev) => ({
         ...prev,
         attendees: [...(prev.attendees || []), { ...newAttendee }],
       }))
       setNewAttendee({ name: "", email: "" })
+    } else {
+      console.warn("Invalid attendee name or email format.");
     }
   }
 
@@ -200,6 +208,13 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
   }
 
   if (!isOpen) return null
+
+  const nameTrimmed = newAttendee.name.trim();
+  const emailTrimmed = newAttendee.email.trim();
+  const emailRegexTest = emailRegex.test(newAttendee.email);
+  const isDisabled = !nameTrimmed || !emailTrimmed || !emailRegexTest;
+
+  console.log('Name trimmed:', nameTrimmed, 'Email trimmed:', emailTrimmed, 'Email regex test:', emailRegexTest, 'Is disabled:', isDisabled);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -431,7 +446,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
                           <Button
                             type="button"
                             onClick={addAttendee}
-                            disabled={!newAttendee.name.trim() || !newAttendee.email.trim()}
+                            disabled={isDisabled}
                           >
                             <Plus className="w-4 h-4 mr-2" />
                             Add

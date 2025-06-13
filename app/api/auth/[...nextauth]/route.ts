@@ -10,17 +10,19 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        // Automatically sign in a predefined user since there's no database
-        return { id: "guest", name: "Guest User", email: "guest@example.com" };
+        // Automatically sign in a predefined user for a simple login page
+        if (credentials?.username && credentials?.password) {
+          // In a real application, you would validate these against a database
+          // For now, let's just assume a successful login with any credentials
+          return { id: credentials.username, name: credentials.username, email: credentials.username + "@example.com" };
+        }
+        return null;
       },
     }),
   ],
   session: {
     strategy: "jwt",
   },
-  // pages: {
-  //   signIn: "/signin", // Custom sign-in page (we'll handle this in app/page.tsx)
-  // },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
