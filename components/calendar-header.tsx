@@ -199,11 +199,11 @@ export function CalendarHeader({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 cursor-pointer">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="/placeholder.svg" />
+            <Avatar className="w-8 h-8">
+              <AvatarImage src="/placeholder.svg" />
                   <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="text-sm hidden sm:block">
+            </Avatar>
+            <div className="text-sm hidden sm:block">
                   <div className="font-medium">{userName}</div>
                   <div className="text-gray-500 text-xs">{userEmail}</div>
                 </div>
@@ -231,8 +231,8 @@ export function CalendarHeader({
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="editEmail" className="text-right">Email</Label>
                       <Input id="editEmail" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="col-span-3" />
-                    </div>
-                  </div>
+            </div>
+          </div>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleSaveUserEdit}>Save</AlertDialogAction>

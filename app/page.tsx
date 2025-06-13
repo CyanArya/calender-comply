@@ -12,18 +12,10 @@ import type { Event, EventStatus } from "../types/event"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DropdownMenuItem, DropdownMenuContent, DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Plus } from "lucide-react"
 
 interface UserInfo {
   name: string
   email: string
-}
-
-interface Calendar {
-  id: string;
-  name: string;
-  color: string;
 }
 
 export default function Home() {
@@ -31,10 +23,14 @@ export default function Home() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
   const [unreadNotifications, setUnreadNotifications] = useState<number>(0)
 
-  const [calendars, setCalendars] = useState<Calendar[]>([])
-  const [selectedCalendars, setSelectedCalendars] = useState<Record<string, boolean>>({})
-  const [newCalendarName, setNewCalendarName] = useState("")
-  const [newCalendarColor, setNewCalendarColor] = useState("#60A5FA")
+  const [selectedCalendars, setSelectedCalendars] = useState({
+    "esther-howard": true,
+    task: true,
+    bootcamp: true,
+    birthday: true,
+    reminders: true,
+    college: true,
+  })
 
   const [currentView, setCurrentView] = useState<"day" | "week" | "month" | "table" | "settings">("month")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -59,28 +55,6 @@ export default function Home() {
       }
     };
     fetchEvents();
-  }, []);
-
-  useEffect(() => {
-    const fetchCalendars = async () => {
-      try {
-        const response = await fetch('/api/calendars');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Calendar[] = await response.json();
-        setCalendars(data);
-        const initialSelected = data.reduce((acc, calendar) => {
-          acc[calendar.id] = true;
-          return acc;
-        }, {} as Record<string, boolean>);
-        setSelectedCalendars(initialSelected);
-      } catch (error) {
-        console.error("Failed to fetch calendars:", error);
-        setToast({ message: "Failed to load calendars.", type: "error" });
-      }
-    };
-    fetchCalendars();
   }, []);
 
   const handleAddEvent = async (eventData: Omit<Event, "id">) => {
@@ -183,7 +157,7 @@ export default function Home() {
     if (!name.trim() || !email.trim()) {
       setToast({ message: "Please enter both name and email", type: "error" })
       return
-    }
+  }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     if (!emailRegex.test(email)) {
@@ -194,39 +168,7 @@ export default function Home() {
     setUserInfo({ name, email })
   }
 
-  const handleAddCalendar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCalendarName.trim() || !newCalendarColor) {
-      setToast({ message: "Calendar name and color are required.", type: "error" });
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/calendars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newCalendarName, color: newCalendarColor }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const newCalendar: Calendar = await response.json();
-      setCalendars((prev) => [...prev, newCalendar]);
-      setSelectedCalendars((prev) => ({ ...prev, [newCalendar.id]: true }));
-      setNewCalendarName("");
-      setToast({ message: "Calendar created successfully!", type: "success" });
-    } catch (error) {
-      console.error("Failed to add calendar:", error);
-      setToast({ message: "Failed to create calendar.", type: "error" });
-    }
-  };
-
   const filteredEvents = events
-    .filter((event) => {
-      return selectedCalendars[event.calendarId]
-    })
 
   if (!userInfo) {
     return (
@@ -253,7 +195,7 @@ export default function Home() {
                 placeholder="Enter your email"
                 className="mt-1"
                 required
-              />
+        />
             </div>
             <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
               Continue
@@ -340,66 +282,6 @@ export default function Home() {
           onClose={() => setToast(null)}
         />
       )}
-
-      <div className="flex flex-col space-y-4">
-        <h3 className="text-lg font-semibold text-gray-800">My Calendars</h3>
-        <div className="space-y-2">
-          {calendars.map((calendar) => (
-            <div key={calendar.id} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={calendar.id}
-                checked={selectedCalendars[calendar.id]}
-                onChange={() =>
-                  setSelectedCalendars((prev) => ({
-                    ...prev,
-                    [calendar.id]: !prev[calendar.id],
-                  }))
-                }
-                className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-                style={{ accentColor: calendar.color }}
-              />
-              <span
-                className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: calendar.color }}
-              ></span>
-              <Label htmlFor={calendar.id} className="text-sm text-gray-700">
-                {calendar.name}
-              </Label>
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 p-4 border border-gray-200 rounded-lg space-y-3 bg-gray-50">
-          <h4 className="text-md font-semibold text-gray-800">Add New Calendar</h4>
-          <form onSubmit={handleAddCalendar} className="space-y-3">
-            <div>
-              <Label htmlFor="new-calendar-name" className="sr-only">Calendar Name</Label>
-              <Input
-                id="new-calendar-name"
-                placeholder="Calendar Name"
-                value={newCalendarName}
-                onChange={(e) => setNewCalendarName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="new-calendar-color" className="text-sm text-gray-700">Color:</Label>
-              <input
-                type="color"
-                id="new-calendar-color"
-                value={newCalendarColor}
-                onChange={(e) => setNewCalendarColor(e.target.value)}
-                className="w-8 h-8 rounded-full border-none cursor-pointer"
-              />
-              <span className="text-sm text-gray-600">{newCalendarColor}</span>
-            </div>
-            <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Calendar
-            </Button>
-          </form>
-        </div>
-      </div>
     </div>
   )
 }
