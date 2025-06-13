@@ -4,7 +4,13 @@ import type { Event } from '@/types/event';
 
 export async function GET() {
   try {
-    const events = await prisma.event.findMany();
+    const events = await prisma.event.findMany({
+      include: {
+        attendees: true,
+        reminders: true,
+        files: true,
+      },
+    });
     return NextResponse.json(events);
   } catch (error: any) {
     console.error('Error fetching events:', error);
@@ -29,6 +35,31 @@ export async function POST(request: Request) {
         type: eventData.type,
         status: eventData.status,
         notes: eventData.notes,
+        attendees: {
+          create: eventData.attendees?.map(attendee => ({
+            name: attendee.name,
+            email: attendee.email,
+          })) || [],
+        },
+        reminders: {
+          create: eventData.reminders?.map(reminder => ({
+            time: reminder.time,
+            type: reminder.type,
+          })) || [],
+        },
+        files: {
+          create: eventData.files?.map(file => ({
+            name: file.name,
+            type: file.type,
+            url: file.url,
+            size: file.size,
+          })) || [],
+        },
+      },
+      include: {
+        attendees: true,
+        reminders: true,
+        files: true,
       },
     });
 

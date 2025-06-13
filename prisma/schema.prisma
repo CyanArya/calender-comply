@@ -23,4 +23,35 @@ model Event {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  attendees   Attendee[]
+  reminders   EventReminder[]
+  files       EventFile[]
+}
+
+model Attendee {
+  id      String @id @default(cuid())
+  name    String
+  email   String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  @@unique([eventId, email])
+}
+
+model EventReminder {
+  id      String @id @default(cuid())
+  time    Int
+  type    String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+}
+
+model EventFile {
+  id      String @id @default(cuid())
+  name    String
+  type    String
+  url     String
+  size    Int
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
 }
