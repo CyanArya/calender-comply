@@ -28,4 +28,5 @@ export interface Event {
   notes?: string;
   files?: EventFile[];
   status: EventStatus;
+  calendarId: string;
 } 

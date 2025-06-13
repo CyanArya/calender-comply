@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Event {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   date        String
@@ -21,8 +21,10 @@ model Event {
   type        String
   status      String
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  calendarId  String    // Foreign key for Calendar
+  calendar    Calendar  @relation(fields: [calendarId], references: [id])
 }
 
 model Calendar {
@@ -31,4 +33,5 @@ model Calendar {
   color     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  events    Event[] // Relation field for Events
 }
