@@ -1,7 +1,7 @@
 "use client"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Event, EventStatus } from "@/app/page"
+import type { Event, EventStatus } from "@/types/event"
 
 interface MonthViewProps {
   currentDate: Date
@@ -122,7 +122,10 @@ export function MonthView({
                         variant="ghost"
                         size="sm"
                         className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => onAddEvent(dayInfo.date)}
+                        onClick={() => {
+                          console.log('MonthView: Date clicked', dayInfo.date);
+                          onAddEvent(dayInfo.date)
+                        }}
                       >
                         <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>

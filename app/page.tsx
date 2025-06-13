@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CalendarSidebar } from "@/components/calendar-sidebar"
 import { CalendarHeader } from "@/components/calendar-header"
 import { CalendarView } from "@/components/calendar-view"
@@ -40,12 +40,42 @@ export default function Home() {
   const [eventModalDate, setEventModalDate] = useState<Date | null>(null)
   const [eventModalTime, setEventModalTime] = useState<string | null>(null)
 
-  const handleAddEvent = (eventData: Omit<Event, "id">) => {
-    const newEvent: Event = {
-      ...eventData,
-      id: Date.now().toString(),
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+        setToast({ message: "Failed to load events.", type: "error" });
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const handleAddEvent = async (eventData: Omit<Event, "id">) => {
+    try {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const newEvent: Event = await response.json();
+      setEvents((prevEvents) => [...prevEvents, newEvent]);
+      setToast({ message: "Event created successfully!", type: "success" });
+    } catch (error) {
+      console.error("Failed to add event:", error);
+      setToast({ message: "Failed to create event.", type: "error" });
     }
-    setEvents((prevEvents) => [...prevEvents, newEvent])
     setShowEventModal(false)
     setSelectedEvent(null)
     setEventModalDate(null)
@@ -53,29 +83,54 @@ export default function Home() {
     setUnreadNotifications((prev) => prev + 1)
   }
 
-  const handleUpdateEvent = (eventData: Omit<Event, "id">) => {
-    if (!selectedEvent) return
-    const updatedEvent: Event = {
-      ...eventData,
-      id: selectedEvent.id,
+  const handleUpdateEvent = async (eventData: Omit<Event, "id">) => {
+    if (!selectedEvent) return;
+    try {
+      const response = await fetch(`/api/events/${selectedEvent.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...eventData, id: selectedEvent.id }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const updatedEvent: Event = await response.json();
+      setEvents((prevEvents) =>
+        prevEvents.map((event) => (event.id === updatedEvent.id ? updatedEvent : event))
+      );
+      setToast({ message: "Event updated successfully!", type: "success" });
+    } catch (error) {
+      console.error("Failed to update event:", error);
+      setToast({ message: "Failed to update event.", type: "error" });
     }
-    setEvents((prevEvents) =>
-      prevEvents.map((event) => (event.id === selectedEvent.id ? updatedEvent : event))
-    )
-    setShowEventModal(false)
-    setSelectedEvent(null)
-  }
+    setShowEventModal(false);
+    setSelectedEvent(null);
+  };
 
-  const handleDeleteEvent = (eventId: string) => {
-    setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId))
-    setShowEventModal(false)
-    setSelectedEvent(null)
-  }
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+      setToast({ message: "Event deleted successfully!", type: "success" });
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      setToast({ message: "Failed to delete event.", type: "error" });
+    }
+    setShowEventModal(false);
+    setSelectedEvent(null);
+  };
 
   const handleEventClick = (event: Event) => {
-    setSelectedEvent(event)
-    setShowEventModal(true)
-  }
+    setSelectedEvent(event);
+    setShowEventModal(true);
+  };
 
   const handleDateClick = (date: Date) => {
     setEventModalDate(date)

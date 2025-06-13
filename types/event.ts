@@ -3,7 +3,7 @@ export type EventStatus = "Not Started" | "In Progress" | "Complete" | "Overdue"
 export interface EventReminder {
   id: string;
   time: number; // minutes before event
-  type: "notification" | "email";
+  type: "notification";
 }
 
 export interface EventFile {
