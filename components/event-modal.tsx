@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Event, EventReminder, EventFile, EventStatus } from "@/app/page"
+import type { Event, EventReminder, EventFile, EventStatus } from "@/types/event"
 
 interface EventModalProps {
   isOpen: boolean
@@ -19,9 +19,10 @@ interface EventModalProps {
   selectedDate: Date | null
   selectedTime: string | null
   editingEvent: Event | null
+  setToast: (toast: { message: string; type: "success" | "error" } | null) => void
 }
 
-export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime, editingEvent }: EventModalProps) {
+export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime, editingEvent, setToast }: EventModalProps) {
   const [formData, setFormData] = useState<Omit<Event, "id">>({
     title: "",
     description: "",
@@ -148,6 +149,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
       reminders: [...(prev.reminders || []), reminder],
     }))
     setNewReminder({ time: 30, type: "notification" })
+    setToast({ message: `Reminder set for ${newReminder.time} minutes before the event.`, type: "success" });
   }
 
   const removeReminder = (id: string) => {

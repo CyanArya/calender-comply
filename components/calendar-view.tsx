@@ -3,7 +3,7 @@
 import { DayView } from "./day-view"
 import { MonthView } from "./month-view"
 import { WeekView } from "./week-view"
-import type { Event, EventStatus } from "@/app/page"
+import type { Event, EventStatus } from "@/types/event"
 
 interface CalendarViewProps {
   view: "day" | "week" | "month" | "table"

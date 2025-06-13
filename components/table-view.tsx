@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import type { Event, EventStatus } from "@/app/page"
+import type { Event, EventStatus } from "@/types/event"
 
 interface TableViewProps {
   events: Event[]
   onEditEvent: (event: Event) => void
   onDeleteEvent: (eventId: string) => void
   onUpdateStatus: (eventId: string, status: EventStatus) => void
-  onSendEmails: (eventId: string) => void
-  
+  onSendEmails: () => void
 }
 
 export function TableView({ events, onEditEvent, onDeleteEvent, onUpdateStatus, onSendEmails }: TableViewProps) {
@@ -291,7 +290,7 @@ export function TableView({ events, onEditEvent, onDeleteEvent, onUpdateStatus, 
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => onSendEmails(event.id)}
+                            onClick={() => onSendEmails()}
                             title="Send emails to attendees"
                           >
                             <Mail className="w-4 h-4" />

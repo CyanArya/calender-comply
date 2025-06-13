@@ -4,15 +4,39 @@ import { ChevronLeft, ChevronRight, Search, Bell, Filter, Plus, List } from "luc
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react"
 
 interface CalendarHeaderProps {
-  currentView: "day" | "week" | "month" | "table" | "contacts" | "reports" | "settings"
+  currentView: "day" | "week" | "month" | "table" | "settings"
   currentDate: Date
-  onViewChange: (view: "day" | "week" | "month" | "table" | "contacts" | "reports" | "settings") => void
+  onViewChange: (view: "day" | "week" | "month" | "table" | "settings") => void
   onDateChange: (date: Date) => void
   onAddEvent: () => void
   userEmail: string
   userName: string
+  unreadNotifications: number
+  onClearNotifications: () => void
+  onSetUserInfo: (userInfo: { name: string; email: string } | null) => void
 }
 
 export function CalendarHeader({
@@ -23,6 +47,9 @@ export function CalendarHeader({
   onAddEvent,
   userEmail,
   userName,
+  unreadNotifications,
+  onClearNotifications,
+  onSetUserInfo,
 }: CalendarHeaderProps) {
   const formatDate = () => {
     if (currentView === "day") {
@@ -54,6 +81,29 @@ export function CalendarHeader({
       newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
     }
     onDateChange(newDate)
+  }
+
+  const [showEditUserModal, setShowEditUserModal] = useState(false)
+  const [editName, setEditName] = useState(userName)
+  const [editEmail, setEditEmail] = useState(userEmail)
+
+  useEffect(() => {
+    setEditName(userName)
+    setEditEmail(userEmail)
+  }, [userName, userEmail])
+
+  const handleSaveUserEdit = () => {
+    if (!editName.trim() || !editEmail.trim()) {
+      // You might want to add a toast/error message here
+      return
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if (!emailRegex.test(editEmail)) {
+      // You might want to add a toast/error message here
+      return
+    }
+    onSetUserInfo({ name: editName, email: editEmail })
+    setShowEditUserModal(false)
   }
 
   return (
@@ -106,7 +156,7 @@ export function CalendarHeader({
 
         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
           {/* Date Navigation */}
-          {currentView !== "table" && currentView !== "contacts" && currentView !== "reports" && (
+          {currentView !== "table" && currentView !== "settings" && (
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => navigateDate("prev")}>
                 <ChevronLeft className="w-4 h-4" />
@@ -135,20 +185,63 @@ export function CalendarHeader({
 
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="hidden sm:flex">
-            <Bell className="w-4 h-4" />
+            <div className="relative">
+              <Bell className="w-4 h-4" onClick={onClearNotifications} />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
+              )}
+            </div>
           </Button>
 
           {/* User Avatar */}
-          <div className="flex items-center gap-2">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>EH</AvatarFallback>
-            </Avatar>
-            <div className="text-sm hidden sm:block">
-              <div className="font-medium">{userName}</div>
-              <div className="text-gray-500 text-xs">{userEmail}</div>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src="/placeholder.svg" />
+                  <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="text-sm hidden sm:block">
+                  <div className="font-medium">{userName}</div>
+                  <div className="text-gray-500 text-xs">{userEmail}</div>
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <AlertDialog open={showEditUserModal} onOpenChange={setShowEditUserModal}>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit Profile</DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Edit Profile</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Update your name and email address.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="editName" className="text-right">Name</Label>
+                      <Input id="editName" value={editName} onChange={(e) => setEditName(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="editEmail" className="text-right">Email</Label>
+                      <Input id="editEmail" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="col-span-3" />
+                    </div>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSaveUserEdit}>Save</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <DropdownMenuItem onClick={() => onSetUserInfo(null)}>Sign out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
