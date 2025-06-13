@@ -14,27 +14,41 @@ export async function GET() {
     return NextResponse.json(events);
   } catch (error: any) {
     console.error('Error fetching events:', error);
-    console.error('Full error object (GET):', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    return NextResponse.json({ message: 'Failed to fetch events', error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { 
+        message: 'Failed to fetch events', 
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }, 
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
     const eventData: Event = await request.json();
-    console.log('Received event data for creation:', eventData);
+    console.log('Received event data for creation:', JSON.stringify(eventData, null, 2));
+
+    // Validate required fields
+    if (!eventData.title || !eventData.date || !eventData.startTime || !eventData.endTime) {
+      return NextResponse.json(
+        { message: 'Missing required fields', required: ['title', 'date', 'startTime', 'endTime'] },
+        { status: 400 }
+      );
+    }
 
     const newEvent = await prisma.event.create({
       data: {
         title: eventData.title,
-        description: eventData.description,
+        description: eventData.description || '',
         date: eventData.date,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
-        color: eventData.color,
-        type: eventData.type,
-        status: eventData.status,
-        notes: eventData.notes,
+        color: eventData.color || '#3788d8',
+        type: eventData.type || 'default',
+        status: eventData.status || 'pending',
+        notes: eventData.notes || '',
         attendees: {
           create: eventData.attendees?.map(attendee => ({
             name: attendee.name,
@@ -63,10 +77,17 @@ export async function POST(request: Request) {
       },
     });
 
+    console.log('Successfully created event:', JSON.stringify(newEvent, null, 2));
     return NextResponse.json(newEvent, { status: 201 });
   } catch (error: any) {
     console.error('Error creating event:', error);
-    console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    return NextResponse.json({ message: 'Failed to create event', error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { 
+        message: 'Failed to create event', 
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }, 
+      { status: 500 }
+    );
   }
 } 
