@@ -20,6 +20,7 @@ const handler = NextAuth({
       },
     }),
   ],
+  secret: "52f98d09baf2a01c12847c9749b30ff93ac1b58feb2fb01ecfaa265be309f038",
   session: {
     strategy: "jwt",
   },
