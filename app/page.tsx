@@ -59,29 +59,42 @@ export default function Home() {
 
   const handleAddEvent = async (eventData: Omit<Event, "id">) => {
     try {
+      console.log('Creating event with data:', eventData);
+      
       const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(eventData),
+        body: JSON.stringify({
+          ...eventData,
+          type: eventData.type || "meeting",
+          status: eventData.status || "Not Started",
+          color: eventData.color || "bg-blue-100 border-blue-400",
+          attendees: eventData.attendees || [],
+          reminders: eventData.reminders || [],
+          files: eventData.files || [],
+        }),
       });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
+
       const newEvent: Event = await response.json();
       setEvents((prevEvents) => [...prevEvents, newEvent]);
       setToast({ message: "Event created successfully!", type: "success" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add event:", error);
-      setToast({ message: "Failed to create event.", type: "error" });
+      setToast({ message: error.message || "Failed to create event.", type: "error" });
     }
-    setShowEventModal(false)
-    setSelectedEvent(null)
-    setEventModalDate(null)
-    setEventModalTime(null)
-    setUnreadNotifications((prev) => prev + 1)
-  }
+    setShowEventModal(false);
+    setSelectedEvent(null);
+    setEventModalDate(null);
+    setEventModalTime(null);
+    setUnreadNotifications((prev) => prev + 1);
+  };
 
   const handleUpdateEvent = async (eventData: Omit<Event, "id">) => {
     if (!selectedEvent) return;

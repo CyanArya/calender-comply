@@ -52,11 +52,21 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!eventData.title || !eventData.date || !eventData.startTime || !eventData.endTime) {
       return NextResponse.json(
-        { message: 'Missing required fields', required: ['title', 'date', 'startTime', 'endTime'] },
+        { 
+          message: 'Missing required fields', 
+          required: ['title', 'date', 'startTime', 'endTime'],
+          received: {
+            title: eventData.title,
+            date: eventData.date,
+            startTime: eventData.startTime,
+            endTime: eventData.endTime
+          }
+        },
         { status: 400 }
       );
     }
 
+    // Create the event with all related data
     const newEvent = await prisma.event.create({
       data: {
         title: eventData.title,
@@ -65,8 +75,8 @@ export async function POST(request: Request) {
         startTime: eventData.startTime,
         endTime: eventData.endTime,
         color: eventData.color || '#3788d8',
-        type: eventData.type || 'default',
-        status: eventData.status || 'pending',
+        type: eventData.type || 'meeting',
+        status: eventData.status || 'Not Started',
         notes: eventData.notes || '',
         attendees: {
           create: eventData.attendees?.map(attendee => ({
@@ -100,6 +110,12 @@ export async function POST(request: Request) {
     return NextResponse.json(newEvent, { status: 201 });
   } catch (error: any) {
     console.error('Error in POST /api/events:', error);
+    console.error('Full error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    });
     
     // Check if it's a database connection error
     if (error.code === 'P1001') {
@@ -122,6 +138,7 @@ export async function POST(request: Request) {
         message: 'Failed to create event', 
         error: error.message,
         code: error.code,
+        meta: error.meta,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }, 
       { status: 500 }

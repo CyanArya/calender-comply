@@ -67,10 +67,12 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
       const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
       const day = selectedDate.getDate().toString().padStart(2, '0');
       const dateString = `${year}-${month}-${day}`;
-      const startTime = selectedTime || "09:00"
-      const [hours, minutes] = startTime.split(":")
-      const endHour = (Number.parseInt(hours) + 1).toString().padStart(2, "0")
-      const endTime = `${endHour}:${minutes}`
+      
+      // Set default times
+      const startTime = selectedTime || "09:00";
+      const [hours, minutes] = startTime.split(":");
+      const endHour = (parseInt(hours) + 1).toString().padStart(2, "0");
+      const endTime = `${endHour}:${minutes}`;
 
       setFormData({
         title: "",
@@ -85,19 +87,54 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
         notes: "",
         files: [],
         status: "Not Started",
-      })
+      });
     }
   }, [editingEvent, selectedDate, selectedTime])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.title.trim() || !formData.date || !formData.startTime || !formData.endTime) {
-      return
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.title.trim()) {
+      setToast({ message: "Please enter a title for the event", type: "error" });
+      return;
+    }
+    if (!formData.date) {
+      setToast({ message: "Please select a date for the event", type: "error" });
+      return;
+    }
+    if (!formData.startTime) {
+      setToast({ message: "Please select a start time for the event", type: "error" });
+      return;
+    }
+    if (!formData.endTime) {
+      setToast({ message: "Please select an end time for the event", type: "error" });
+      return;
     }
 
-    onSave(formData)
-    handleClose()
-  }
+    // Format the data
+    const formattedData: Omit<Event, "id"> = {
+      title: formData.title.trim(),
+      description: formData.description?.trim() || "",
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      color: formData.color || "bg-blue-100 border-blue-400",
+      type: (formData.type || "meeting") as Event["type"],
+      status: (formData.status || "Not Started") as EventStatus,
+      notes: formData.notes?.trim() || "",
+      attendees: formData.attendees || [],
+      reminders: formData.reminders?.map(r => ({
+        ...r,
+        type: "notification" as const
+      })) || [],
+      files: formData.files || []
+    };
+
+    console.log('Submitting event data:', formattedData);
+    onSave(formattedData);
+    handleClose();
+  };
 
   const handleClose = () => {
     setFormData({
