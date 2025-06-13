@@ -127,7 +127,7 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate, selectedTime
       }))
       setNewAttendee({ name: "", email: "" })
     } else {
-      console.warn("Cannot add attendee: Name and valid email are required.");
+      console.warn("Invalid attendee name or email format.");
     }
   }
 

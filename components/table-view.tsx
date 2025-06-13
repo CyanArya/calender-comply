@@ -14,6 +14,7 @@ interface TableViewProps {
   onDeleteEvent: (eventId: string) => void
   onUpdateStatus: (eventId: string, status: EventStatus) => void
   onSendEmails: (eventId: string) => void
+  
 }
 
 export function TableView({ events, onEditEvent, onDeleteEvent, onUpdateStatus, onSendEmails }: TableViewProps) {
